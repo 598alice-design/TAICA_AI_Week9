@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG 檢索增強生成 | LLM & Agent 實戰知識庫</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">🤖 LLM & Agent 講義</div>
+      <nav class="nav-links">
+        <a href="../index.html" class="nav-item">🏠 知識庫首頁</a>
+        <div class="nav-group-title">核心講義單元</div>
+        <a href="01-agent-workflow.html" class="nav-item">01. Multi-Agent 架構導論</a>
+        <a href="02-rag-architecture.html" class="nav-item active">02. RAG 檢索增強生成</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="page-header">
+        <div class="meta">
+          <span class="badge">Unit 02</span>
+          <span class="badge">Knowledge Retrieval</span>
+        </div>
+        <h1>RAG 檢索增強生成與知識庫索引實戰</h1>
+        <p class="subtitle">結合外部結構化知識庫與語意向量檢索，讓 LLM 具備即時查證與精準引用領域知識的能力。</p>
+      </header>
+
+      <section class="doc-section">
+        <h2>1. 概念背景與核心問題</h2>
+        <p>預訓練語言模型的知識受限於訓練資料截止日，且面對私有教材或特定課程講義時容易產生「一本正經胡說八道」的幻覺。透過檢索增強生成（Retrieval-Augmented Generation, RAG），我們能在生成回答前先動態注入最相關的教材段落。</p>
+        <div class="callout callout-info">
+          <strong>💡 核心觀念：</strong>RAG 的品質取決於「檢索精準度（Retrieval Precision）」。若檢索出錯誤或破碎的上下文（Garbage In），即使最強大的模型也無法給出正確解答。
+        </div>
+      </section>
+
+      <section class="doc-section">
+        <h2>2. 架構流程與實作解析</h2>
+        <p>高準確率的 RAG 知識庫管線包含以下三個關鍵步驟：</p>
+        <ol class="step-list">
+          <li><strong>語意分塊 (Semantic Chunking)：</strong>依據 Markdown 標題或段落邊界切分文檔，並保留 10%~15% 的重疊視窗（Overlap）以維持上下文連貫。</li>
+          <li><strong>混合檢索 (Hybrid Search)：</strong>同時結合稠密向量檢索（Dense Embedding）與關鍵字匹配（BM25），兼顧語意理解與專有名詞精準查找。</li>
+          <li><strong>重排序模型 (Reranker)：</strong>使用 Cross-Encoder 對初步召回的 Top-K 段落進行精細打分，僅將最相關的前 3~5 個段落送入 LLM。</li>
+        </ol>
+        <pre><code>// RAG 檢索增強管線虛擬碼
+chunks = MarkdownSplitter(chunk_size=500, overlap=75).split(docs)
+candidates = HybridRetriever(vector_db, bm25_index).search(user_query, top_k=15)
+best_context = CrossEncoderReranker().rerank(user_query, candidates, top_n=4)
+
+response = LLM.generate(system_prompt, context=best_context, question=user_query)</code></pre>
+        <div class="callout callout-warn">
+          <strong>⚠️ 注意事項：</strong>切分講義時請避免將完整的程式碼區塊或表格從中間切斷，建議先以 Markdown AST 解析區塊後再進行分塊。
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <a href="../index.html" class="btn-back">← 返回知識庫首頁</a>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
